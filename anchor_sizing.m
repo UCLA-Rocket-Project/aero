@@ -1,7 +1,11 @@
+clear; clc;
+
 %%% Enter here
 tip_length = 1.1438; % in, tip/aerospike length (moment arm from shoulder)
 P = 695;             % lbf, max load on the tip/aerospike
 d = [0.5 0.75 1 1.25 1.5]; % in, anchor diameters to check
+d_check = 0.75;      % in, diameter for bearing MOS check
+L_check = 1.3;         % in, embedded length for bearing MOS check
 %%%
 
 % material / sheet constants
@@ -23,6 +27,7 @@ pass = MOS_shear >= 0 & MOS_bend >= 0;
 % minimum embedded length (bearing on thickened)
 % solves P/(dL)(4+6a/L) = sigma_a
 sigma_a = S_thick / FOS;
+%bering on thickened mos is 0
 L_min = (4*P + sqrt(16*P^2 + 24*sigma_a*d*P*tip_length)) ./ (2*sigma_a*d);
 
 % anchor volume at minimum length
@@ -35,3 +40,8 @@ for i = 1:length(d)
     fprintf('  %5.2f    %8.2f    %7.2f    %-4s    %7.3f       %7.3f\n', ...
         d(i), MOS_shear(i), MOS_bend(i), status{pass(i) + 1}, L_min(i), V(i));
 end
+
+% bearing MOS on thickened at a chosen diameter and length
+[MOS_bear, sigma_bear] = bearing_mos(d_check, L_check, P, tip_length);
+fprintf('\nBearing on thickened at d = %.2f in, L = %.2f in:\n', d_check, L_check);
+fprintf('  sigma_max = %.0f psi, MOS = %.2f %s\n', sigma_bear, MOS_bear, status{(MOS_bear >= 0) + 1});
